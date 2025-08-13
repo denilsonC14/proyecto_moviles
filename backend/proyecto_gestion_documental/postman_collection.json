@@ -1,0 +1,83 @@
+{
+  "info": {
+    "_postman_id": "b7e2e7c2-8c2e-4e2a-9e2e-7c2e8c2e4e2a",
+    "name": "API Gestion Documental",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Estado de la API",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": [""]
+        }
+      }
+    },
+    {
+      "name": "Subir documento",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Título de ejemplo\",\n  \"contenido\": \"Contenido completo del documento...\",\n  \"tipo\": \"normativo\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/documentos/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["documentos", ""]
+        }
+      }
+    },
+    {
+      "name": "Listar documentos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/documentos/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["documentos", ""]
+        }
+      }
+    },
+    {
+      "name": "Consulta RAG",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pregunta\": \"¿Qué equipos de protección debo usar?\",\n  \"limite_resultados\": 5\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/consultas/",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["consultas", ""]
+        }
+      }
+    }
+  ]
+}
