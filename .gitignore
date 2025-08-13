@@ -1,0 +1,65 @@
+# Ignorar archivos y carpetas de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.env
+.env/
+venv/
+doc_inteligente/
+Lib/
+Include/
+Scripts/
+share/
+*.sqlite3
+*.db
+*.log
+*.pot
+*.mo
+*.swp
+*.bak
+*.tmp
+*.old
+*.orig
+*.egg-info/
+*.egg
+*.whl
+*.manifest
+*.spec
+*.coverage
+.coverage
+.cache/
+.mypy_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+# Ignorar dependencias y archivos de entorno
+requirements.txt.bak
+# Ignorar archivos de configuración de VSCode
+.vscode/
+# Ignorar archivos de sistema
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.out
+*.obj
+*.class
+# Ignorar archivos de frontend
+node_modules/
+dist/
+build/
+# Ignorar archivos temporales
+*.tmp
+*.temp
+*.log
+*.pid
+*.lock
+# Ignorar archivos de Ollama
+ollama/
+ollama.db

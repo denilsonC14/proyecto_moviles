@@ -1,0 +1,8 @@
+fastapi==0.116.1
+uvicorn==0.35.0
+langchain==0.3.27
+sentence-transformers==5.0.0
+chromadb==1.0.15
+ollama==0.5.1
+requests==2.31.0
+pydantic==2.11.7
