@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -6,6 +6,9 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 import requests
 import json
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from passlib.context import CryptContext
 
 app = FastAPI(title="Gestión Documental Inteligente API")
 
@@ -17,6 +20,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Configuración de base de datos para usuarios
+engine = create_engine("sqlite:///usuarios.db")
+SessionLocal = sessionmaker(bind=engine)
+Base = declarative_base()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Modelo de Usuario
+class Usuario(Base):
+    __tablename__ = "usuarios"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+
+# Crear tablas
+Base.metadata.create_all(bind=engine)
 
 # Inicializar modelos
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -43,7 +62,27 @@ class RespuestaConsulta(BaseModel):
     respuesta_ia: str
     documentos_relevantes: List[RespuestaDocumento]
 
+# Modelos de Autenticación
+class UsuarioCreate(BaseModel):
+    username: str
+    password: str
+
+class UsuarioLogin(BaseModel):
+    username: str
+    password: str
+
+class UsuarioResponse(BaseModel):
+    id: int
+    username: str
+
 # Funciones auxiliares
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 def consultar_ollama(prompt: str) -> str:
     """Consulta al modelo Llama via Ollama"""
     try:
@@ -172,12 +211,63 @@ async def listar_documentos():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Endpoints de Autenticación
+@app.post("/register", summary="Registrar nuevo usuario")
+async def register(usuario: UsuarioCreate, db: Session = Depends(get_db)):
+    """Registra un nuevo usuario"""
+    try:
+        # Verificar si usuario ya existe
+        db_usuario = db.query(Usuario).filter(Usuario.username == usuario.username).first()
+        if db_usuario:
+            raise HTTPException(status_code=400, detail="Usuario ya existe")
+        
+        # Crear nuevo usuario
+        hashed_password = pwd_context.hash(usuario.password)
+        db_usuario = Usuario(username=usuario.username, hashed_password=hashed_password)
+        db.add(db_usuario)
+        db.commit()
+        db.refresh(db_usuario)
+        
+        return {
+            "mensaje": "Usuario registrado exitosamente",
+            "usuario": {"id": db_usuario.id, "username": db_usuario.username}
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/login", summary="Iniciar sesión")
+async def login(usuario: UsuarioLogin, db: Session = Depends(get_db)):
+    """Autentica un usuario"""
+    try:
+        # Buscar usuario
+        db_usuario = db.query(Usuario).filter(Usuario.username == usuario.username).first()
+        if not db_usuario or not pwd_context.verify(usuario.password, db_usuario.hashed_password):
+            raise HTTPException(status_code=401, detail="Credenciales inválidas")
+        
+        return {
+            "mensaje": "Login exitoso",
+            "usuario": {"id": db_usuario.id, "username": db_usuario.username}
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/", summary="Estado de la API")
 async def root():
     return {
         "mensaje": "API de Gestión Documental Inteligente", 
         "estado": "activo",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "endpoints": {
+            "documentos": "/documentos/",
+            "consultas": "/consultas/",
+            "login": "/login",
+            "register": "/register"
+        }
     }
 
 if __name__ == "__main__":
